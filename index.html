@@ -81,13 +81,12 @@
 
             if (lowestEmptyCell) {
                 const row = parseInt(lowestEmptyCell.dataset.row);
-                // Update both visual and game board state
+                // Update the visual appearance and game board array first
                 lowestEmptyCell.style.backgroundColor = currentPlayer;
                 gameBoard[row][col] = currentPlayer;
 
-                // Check for win using the gameBoard array
+                // Then check for win - pass row and col to checkWin
                 if (checkWin(row, col)) {
-                    // Wait for the DOM to update with the last move
                     setTimeout(() => {
                         alert(`${currentPlayer} wins!`);
                         setTimeout(resetGame, 500);
@@ -95,7 +94,7 @@
                     return;
                 }
 
-                // Switch player only if no win
+                // Finally change player
                 currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
             }
         }
@@ -125,24 +124,81 @@
         }
 
         function checkWin(row, col) {
-            const directions = [
-                [[0, 1], [0, 2], [0, 3]], // horizontal
-                [[1, 0], [2, 0], [3, 0]], // vertical
-                [[1, 1], [2, 2], [3, 3]], // diagonal right
-                [[1, -1], [2, -2], [3, -3]] // diagonal left
-            ];
-
-            return directions.some(direction => {
-                try {
-                    const cells = [gameBoard[row][col]];
-                    direction.forEach(([dx, dy]) => {
-                        cells.push(gameBoard[row + dx][col + dy]);
-                    });
-                    return cells.every(cell => cell === currentPlayer);
-                } catch (e) {
-                    return false; // Handle out of bounds
+            // Check horizontal (count consecutive pieces left and right of current position)
+            let count = 1;  // Start with 1 for the current piece
+            
+            // Check left
+            for (let i = 1; i <= 3; i++) {
+                if (col - i >= 0 && gameBoard[row][col - i] === currentPlayer) {
+                    count++;
+                } else {
+                    break;
                 }
-            });
+            }
+            
+            // Check right
+            for (let i = 1; i <= 3; i++) {
+                if (col + i < 7 && gameBoard[row][col + i] === currentPlayer) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            
+            if (count >= 4) return true;
+
+            // Check vertical
+            count = 1;
+            for (let i = 1; i <= 3; i++) {
+                if (row + i < 6 && gameBoard[row + i][col] === currentPlayer) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            if (count >= 4) return true;
+
+            // Check diagonal (bottom-left to top-right)
+            count = 1;
+            // Check bottom-left
+            for (let i = 1; i <= 3; i++) {
+                if (row + i < 6 && col - i >= 0 && gameBoard[row + i][col - i] === currentPlayer) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            // Check top-right
+            for (let i = 1; i <= 3; i++) {
+                if (row - i >= 0 && col + i < 7 && gameBoard[row - i][col + i] === currentPlayer) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            if (count >= 4) return true;
+
+            // Check diagonal (top-left to bottom-right)
+            count = 1;
+            // Check top-left
+            for (let i = 1; i <= 3; i++) {
+                if (row - i >= 0 && col - i >= 0 && gameBoard[row - i][col - i] === currentPlayer) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            // Check bottom-right
+            for (let i = 1; i <= 3; i++) {
+                if (row + i < 6 && col + i < 7 && gameBoard[row + i][col + i] === currentPlayer) {
+                    count++;
+                } else {
+                    break;
+                }
+            }
+            if (count >= 4) return true;
+
+            return false;
         }
 
     </script>
