@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Connect4</title>
+    <style>
+        body {
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .board {
+            background-color: dodgerblue;
+            display: grid;
+            grid-template-columns: repeat(7, 50px);
+            grid-template-rows: repeat(6, 50px);
+            max-width: 500px;
+            gap: 2px;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .cell {
+            background-color: aliceblue;
+            /*border: 0.5px solid black;*/
+            border-radius: 50%;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 125px;
+            border-radius: 10px;
+            font-stretch: expanded
+        }
+    </style>
+</head>
+
+<body>
+    <div class="title">
+        <h1>Connect 4</h1>
+    </div>
+    <div class="board">
+    </div>
+    <button type="button" class="btn btn-success">Reset Game</button>
+
+    <script>
+        const board = document.querySelector('.board');
+        const reset = document.querySelector('.btn.btn-success')
+        let currentPlayer = 'red';
+        let gameBoard = Array.from({ length: 6 }, () => Array.from({ length: 7 }, () => null));
+
+        function createBoard() {
+            for (let row = 0; row < 6; row++) {
+                for (let col = 0; col < 7; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    board.appendChild(cell);
+                }
+            }
+        }
+
+        createBoard();
+        board.addEventListener('click', handelClick);
+        reset.addEventListener('click', resetGame);
+
+        function handelClick(event) {
+            if (!event.target.classList.contains('cell')) return;
+
+            const col = parseInt(event.target.dataset.col);
+            const lowestEmptyCell = findLowestEmptyCell(col);
+
+            if (lowestEmptyCell) {
+                const row = parseInt(lowestEmptyCell.dataset.row);
+                // Update both visual and game board state
+                lowestEmptyCell.style.backgroundColor = currentPlayer;
+                gameBoard[row][col] = currentPlayer;
+
+                // Check for win using the gameBoard array
+                if (checkWin(row, col)) {
+                    // Wait for the DOM to update with the last move
+                    setTimeout(() => {
+                        alert(`${currentPlayer} wins!`);
+                        setTimeout(resetGame, 500);
+                    }, 100);
+                    return;
+                }
+
+                // Switch player only if no win
+                currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+            }
+        }
+
+        function findLowestEmptyCell(col) {
+            for (let row = 5; row >= 0; row--) {
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                if (cell.style.backgroundColor === '' || cell.style.backgroundColor === 'aliceblue') {
+                    return cell;
+                }
+            }
+            return null; //Col is full
+        }
+
+        function resetGame() {
+            // Reset the gameBoard array
+            gameBoard = Array.from({ length: 6 }, () => Array.from({ length: 7 }, () => null));
+
+            // Reset the visual board
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.style.backgroundColor = 'aliceblue';  // Reset to original color
+            });
+
+            // Reset current player
+            currentPlayer = 'red';
+        }
+
+        function checkWin(row, col) {
+            const directions = [
+                [[0, 1], [0, 2], [0, 3]], // horizontal
+                [[1, 0], [2, 0], [3, 0]], // vertical
+                [[1, 1], [2, 2], [3, 3]], // diagonal right
+                [[1, -1], [2, -2], [3, -3]] // diagonal left
+            ];
+
+            return directions.some(direction => {
+                try {
+                    const cells = [gameBoard[row][col]];
+                    direction.forEach(([dx, dy]) => {
+                        cells.push(gameBoard[row + dx][col + dy]);
+                    });
+                    return cells.every(cell => cell === currentPlayer);
+                } catch (e) {
+                    return false; // Handle out of bounds
+                }
+            });
+        }
+
+    </script>
+</body>
+
+</html>
